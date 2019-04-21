@@ -20,14 +20,14 @@ public:
     };
 
     Logger(LogLevel level, const std::string &srcFile, uint32_t line, const std::string &functionName) :
-            level_(level),
-            fileInfo_(srcFile + ":" + std::to_string(line)),
-            functionName_(functionName) {
+            _level(level),
+            _fileInfo(srcFile + ":" + std::to_string(line)),
+            _functionName(functionName) {
 
         time_t now = time(nullptr);
         char buffer[20]; // YYYY-MM-DD HH:MM:SS
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&now));
-        ss_ << "[" << buffer << " - " << getpid() << " - ";
+        _ss << "[" << buffer << " - " << getpid() << " - ";
         const char *levelName[LogLevel::EnumSize] =
                 {
                         "DEBUG",
@@ -36,22 +36,25 @@ public:
                         "ERROR",
                         "FATAL"
                 };
-        ss_ << levelName[level] << " - " << fileInfo_ << " " << functionName_ << "()] ";
+        _ss << levelName[level] << " - " << _fileInfo << " " << _functionName << "()] ";
     }
 
     ~Logger() {
         if (errno != 0) {
             char buf[256];
-            strerror_r(errno, buf, sizeof(buf));
-            ss_ << " - errno: " << errno << " - " << buf;
-            errno = 0; // reset errno
+            if (strerror_r(errno, buf, sizeof(buf)) == 0) {
+                _ss << " - errno: " << errno << " - " << buf;
+            } else {
+                // TODO Handle the error in case strerror_r fails
+            }
+            errno = 0; // Reset errno
         }
 
-        if (level_ >= logLevel()) {
-            ss_ << "\n" ;
-            std::cout << ss_.str();
+        if (_level >= logLevel()) {
+            _ss << "\n";
+            std::cout << _ss.str();
         }
-        if (level_ > LogLevel::FATAL) {
+        if (_level > LogLevel::FATAL) {
             abort();
         }
     }
@@ -60,13 +63,13 @@ public:
 
     static void setLogLevel(LogLevel level);
 
-    std::stringstream &stream() { return ss_; }
+    std::stringstream &stream() { return _ss; }
 
 private:
-    LogLevel level_;
-    std::string fileInfo_;
-    std::string functionName_;
-    std::stringstream ss_;
+    LogLevel _level;
+    std::string _fileInfo;
+    std::string _functionName;
+    std::stringstream _ss;
 };
 
 extern Logger::LogLevel g_logLevel;
@@ -82,4 +85,4 @@ inline void Logger::setLogLevel(Logger::LogLevel level) { g_logLevel = level; }
     if (ssnet::Logger::LogLevel::level >= ssnet::Logger::logLevel()) \
         ssnet::Logger(ssnet::Logger::LogLevel::level, __FILE__, __LINE__, __FUNCTION__).stream()
 
-// todo 提供条件log语句,如 LogInfoIf(1>3) << "1 > 3";
+// TODO more interface
