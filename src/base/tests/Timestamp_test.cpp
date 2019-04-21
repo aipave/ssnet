@@ -5,8 +5,8 @@
 using namespace std;
 using namespace ssnet;
 
-double timeDifference(Timestamp lhs, Timestamp rhs) {
-    auto diff = lhs.microSecondsSinceEpoch() - rhs.microSecondsSinceEpoch();
+double timeDiff(Timestamp lhs, Timestamp rhs) {
+    auto diff = lhs.usSinceEpoch() - rhs.usSinceEpoch();
     return static_cast<double>(diff) / Timestamp::kMicroSecondsPerSecond;
 }
 
@@ -18,13 +18,13 @@ void benchmark() {
         stamps.push_back(Timestamp::now());
     cout << "first: " << stamps.front().toString() << endl;
     cout << "last: " << stamps.back().toString() << endl;
-    cout << "diff: " << timeDifference(stamps.front(), stamps.back()) << endl;
+    cout << "diff: " << timeDiff(stamps.front(), stamps.back()) << endl;
 
     const int incLen = 100;
     int increments[incLen] = {0};
-    int64_t start = stamps.front().microSecondsSinceEpoch();
+    int64_t start = stamps.front().usSinceEpoch();
     for (int i = 1; i < kNumber; ++i) {
-        auto next = stamps[i].microSecondsSinceEpoch();
+        auto next = stamps[i].usSinceEpoch();
         auto inc = next - start;
         start = next;
         if (inc < 100) {
