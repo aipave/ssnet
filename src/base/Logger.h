@@ -54,7 +54,7 @@ public:
             _ss << "\n";
             std::cout << _ss.str();
         }
-        if (_level > LogLevel::FATAL) {
+        if (_level >= LogLevel::FATAL) {
             abort();
         }
     }

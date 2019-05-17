@@ -1,43 +1,46 @@
 #include <iostream>
-#include <vector>
+#include <cassert>
+
 #include "Timestamp.h"
+#include "Logger.h"
 
-using namespace std;
-using namespace ssnet;
-
-double timeDiff(Timestamp lhs, Timestamp rhs) {
-    auto diff = lhs.usSinceEpoch() - rhs.usSinceEpoch();
-    return static_cast<double>(diff) / Timestamp::kMicroSecondsPerSecond;
+void testInvalidTime() {
+    ssnet::Timestamp ts = ssnet::Timestamp::invalidTime();
+    assert(!ts.valid());
+    assert(ts.usSinceEpoch() == 0);
 }
 
-void benchmark() {
-    const int kNumber = 1000 * 1000;
-    std::vector <Timestamp> stamps;
-    stamps.reserve(kNumber);
-    for (int i = 0; i < kNumber; ++i)
-        stamps.push_back(Timestamp::now());
-    cout << "first: " << stamps.front().toString() << endl;
-    cout << "last: " << stamps.back().toString() << endl;
-    cout << "diff: " << timeDiff(stamps.front(), stamps.back()) << endl;
+void testNow() {
+    ssnet::Timestamp ts = ssnet::Timestamp::now();
+    assert(ts.valid());
+}
 
-    const int incLen = 100;
-    int increments[incLen] = {0};
-    int64_t start = stamps.front().usSinceEpoch();
-    for (int i = 1; i < kNumber; ++i) {
-        auto next = stamps[i].usSinceEpoch();
-        auto inc = next - start;
-        start = next;
-        if (inc < 100) {
-            ++increments[inc];
-        } else
-            cout << "big gap " << inc << endl;
-    }
+void testTimeDiff() {
+    ssnet::Timestamp ts1(1000000); // 1s
+    ssnet::Timestamp ts2(3000000); // 3s
+    double diff = ssnet::Timestamp::timeDiff(ts2, ts1);
+    assert(diff == 2.0);
+}
 
-    for (int i = 0; i < incLen; ++i)
-        cout << i << " " << increments[i] << endl;
+void testAddTime() {
+    ssnet::Timestamp ts(1000000); // 1s
+    ts.addTime(2.5); // Add 2.5s
+    assert(ts.usSinceEpoch() == 3500000); // 3.5s
 }
 
 int main() {
-    cout << Timestamp::now().toString() << endl;
-    benchmark();
+    // Test invalidTime()
+    testInvalidTime();
+
+    // Test now()
+    testNow();
+
+    // Test timeDiff()
+    testTimeDiff();
+
+    // Test addTime()
+    testAddTime();
+
+    LOG(INFO) << "All tests passed!\n";
+    return 0;
 }
