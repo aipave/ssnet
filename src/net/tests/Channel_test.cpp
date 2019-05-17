@@ -32,10 +32,11 @@ public:
         spec.it_interval = toTimeSpec(_interval);
         spec.it_value = spec.it_interval;
         int ret = ::timerfd_settime(_timerFd, 0, &spec, nullptr);
-        if (ret < 0)
+        if (ret < 0) {
             LOG(ERROR) << "timerfd_settime errno: " << errno;
-        else
+        } else {
             LOG(DEBUG) << "timerfd settime success";
+        }
     }
 
 private:

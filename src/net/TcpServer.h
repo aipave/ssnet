@@ -49,9 +49,11 @@ private:
     EventLoop *_loop;
     Acceptor _acceptor;
     EventLoopThreadPool _threadPool;
-    MessageCallback _onMsgCb;
+
     ConnectionCallback _onConnCb;
+    MessageCallback _onMsgCb;
     WriteCompleteCallback _onWriteCb;
+
     std::unordered_set <TcpConnectionPtr> _connFlags;
     ThreadInitCallback _threadInitCb;
 };
