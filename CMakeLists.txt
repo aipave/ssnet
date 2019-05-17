@@ -1,6 +1,9 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.14)
 
-project(src CXX)
+project(ssnet CXX)
+
+#set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_testing()
 
@@ -23,8 +26,10 @@ find_library(BOOSTTEST_LIBRARY NAMES boost_unit_test_framework)
 include_directories(${PROJECT_SOURCE_DIR}/src/base)
 include_directories(${PROJECT_SOURCE_DIR}/src/net)
 
+
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 message(STATUS "CXX_FLAGS = " ${CMAKE_CXX_FLAGS} " " ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
 
 add_subdirectory(src/base)
 add_subdirectory(src/net)
+add_subdirectory(example)

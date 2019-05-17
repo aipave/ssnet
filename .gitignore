@@ -55,3 +55,4 @@
 /bin/
 /build/
 /lib/
+./cmake-build-debug
