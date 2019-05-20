@@ -67,11 +67,27 @@ private:
     Channel _timerChannel;
 };
 
-int main() {
+void testPeriodicTimer() {
     EventLoop loop;
-    PeriodicTimer timer(&loop, 1, []() { cout << "periodic timer 1 sec" << endl; });
+
+    using TimerCallback = function<void()>;
+
+    TimerCallback periodicCallback = []() { cout << "Periodic timer 6 sec" << endl; };
+
+    TimerCallback runEveryCallback = []() { printf("Run every 2 sec\n"); };
+
+    // create and start the periodic timer
+    PeriodicTimer timer(&loop, 6, periodicCallback);
     timer.start();
-    loop.runEvery(1, std::bind(printf, "run every 1 sec"));
+
+    // schedule a runEvery timer
+    loop.runEvery(2, runEveryCallback);
+
+    // start loop
     loop.loop();
+}
+
+int main() {
+    testPeriodicTimer();
     return 0;
 }

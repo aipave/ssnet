@@ -30,7 +30,8 @@ EventLoop::EventLoop() :
         _poller(new EPollPoller(this)),
         _timerQueue(this),
         _wakeupFd(createEventfd()),
-        _wakeupChan(this, _wakeupFd) {
+        _wakeupChan(this, _wakeupFd),
+        _mtx() {
     if (t_loopInThisThread) {
         LOG(FATAL) << "another EventLoop exists in this thread" << _tid;
     } else {
@@ -57,8 +58,9 @@ void EventLoop::loop() {
         std::vector < Channel * > activeChannels;
         static const int kPollTimeMs = 10000;
         Timestamp pollReturnTime = _poller->poll(kPollTimeMs, activeChannels);
-        for (Channel *channel: activeChannels)
+        for (Channel *channel: activeChannels) {
             channel->handleEvent(pollReturnTime);
+        }
         doTask();
     }
     _isLooping = false;
@@ -71,18 +73,21 @@ void EventLoop::quit() {
 }
 
 void EventLoop::runInLoop(TaskCallback task) {
-    if (isInLoopThread())
+    if (isInLoopThread()) {
         task();
-    else
+    } else {
         queueInLoop(std::move(task));
-
+    }
 }
 
 void EventLoop::queueInLoop(TaskCallback task) {
-    std::lock_guard <std::mutex> lock(_mtx);
-    tasks_.push_back(std::move(task));
-    if (!isInLoopThread() || _workingFlag)
+    {
+        std::lock_guard <std::mutex> lock(_mtx);
+        _tasks.push_back(std::move(task));
+    }
+    if (!isInLoopThread() || _workingFlag) {
         wakeup();
+    }
 }
 
 TimerId EventLoop::runAt(Timestamp time, TimerCallback cb) {
@@ -108,16 +113,13 @@ void EventLoop::cancel(TimerId id) {
 void EventLoop::updateChannel(Channel *channel) {
     assert(channel->ownerLoop() == this);
     assertInLoopThread();
-    std::lock_guard<std::mutex> lock(_mtx);
-    // LOG(DEBUG) << "EevntLoop::updateChannel() fd: " << channel->fd();
+    // LOG(DEBUG) << "EventLoop::updateChannel() fd: " << channel->fd();
     _poller->updateChannel(channel);
 }
-
 
 void EventLoop::removeChannel(Channel *channel) {
     assert(channel->ownerLoop() == this);
     assertInLoopThread();
-    std::lock_guard<std::mutex> lock(_mtx);
     // LOG(DEBUG) << "EventLoop::removeChannel() fd: " << channel->fd();
     _poller->removeChannel(channel);
 }
@@ -139,15 +141,15 @@ void EventLoop::handleRead() {
 void EventLoop::doTask() {
     _workingFlag = true;
 
-    decltype(tasks_)
-    tasks;
+    decltype(_tasks) tasks;
     {
         std::lock_guard <std::mutex> lock(_mtx);
-        tasks.swap(tasks_);
+        tasks.swap(_tasks);
     }
 
-    for (const auto &task: tasks)
+    for (const auto &task: tasks) {
         task();
+    }
 
     _workingFlag = false;
 }

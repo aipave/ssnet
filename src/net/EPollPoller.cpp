@@ -84,7 +84,9 @@ void EPollPoller::update(int operation, Channel *channel) {
     bzero(&event, sizeof event);
     event.events = channel->events();
     event.data.ptr = channel;
-    if (::epoll_ctl(_epollFd, operation, channel->fd(), &event) < 0)
+    if (::epoll_ctl(_epollFd, operation, channel->fd(), &event) < 0) {
+        // perror("Error in epoll_ctl");
         LOG(ERROR) << "epoll_ctl op = " << operation << " fd = " << channel->fd()
                    << " errno: " << errno;
+    }
 }

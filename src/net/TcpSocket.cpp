@@ -9,7 +9,7 @@
 using namespace ssnet;
 
 TcpSocket::~TcpSocket() {
-    // ISocket::close(_fd);
+    ISocket::close(_fd);
 }
 
 void TcpSocket::listen() {
