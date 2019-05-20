@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <cassert>
 
+#include <sys/uio.h>
+
 #include "Logger.h"
 #include "ISocket.h"
 
@@ -95,7 +97,7 @@ int ISocket::getSocketError(int sockfd) {
 }
 
 ssize_t ISocket::readv(int sockfd, const struct iovec *iov, int iovcnt) {
-    return ISocket::readv(sockfd, iov, iovcnt);
+    return ::readv(sockfd, iov, iovcnt);
 }
 
 void ISocket::shutdownWrite(int sockfd) {

@@ -46,7 +46,7 @@ private:
 
 int main() {
     EventLoop loop;
-    EndPoint local(10010);
+    EndPoint local(9102);
     EchoServer server(&loop, local);
     server.start();
     loop.loop();
