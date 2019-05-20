@@ -1,8 +1,11 @@
-add_executable(chan_test Channel_test.cpp)
-target_link_libraries(chan_test ssnet_net_lib)
-
 add_executable(buffer_test Buffer_unittest.cpp)
 target_link_libraries(buffer_test ssnet_net_lib)
+
+add_executable(endpoint_test EndPoint_test.cpp)
+target_link_libraries(endpoint_test ssnet_net_lib)
+
+add_executable(chan_test Channel_test.cpp)
+target_link_libraries(chan_test ssnet_net_lib)
 
 add_executable(eventloop_test EventLoop_test.cpp)
 target_link_libraries(eventloop_test ssnet_net_lib ssnet_base)

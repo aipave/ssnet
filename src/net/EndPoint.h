@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 
 #include <netinet/in.h>
 
@@ -13,13 +14,15 @@ public:
 
     explicit EndPoint(uint16_t port = 0, bool ipv6 = false);
 
-    EndPoint(const struct sockaddr_in &addr) :
-            _addr(addr) { }
+    EndPoint(const struct sockaddr_in &addr) {
+        ::memmove(&_addr, &addr, sizeof(struct sockaddr_in));
+    }
 
-    EndPoint(const struct sockaddr_in6 &addr6) :
-            _addr6(addr6) { }
+    EndPoint(const struct sockaddr_in6 &addr6) {
+        ::memmove(&_addr6, &addr6, sizeof(struct sockaddr_in6));
+    }
 
-    const struct sockaddr *getSockAddr() const { return ISocket::sockAddrCast(&_addr6); }
+    const struct sockaddr* getSockAddr() const;
 
     sa_family_t family() const { return _addr.sin_family; }
 
