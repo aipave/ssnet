@@ -8,33 +8,40 @@
 using namespace ssnet;
 using namespace std;
 
-void print(EventLoop *loop = nullptr) {
-    cout << "pid: " << getpid() << ", tid: " << ::syscall(SYS_gettid) << ", loop: " <<
-         reinterpret_cast<size_t>(loop) << endl;
+void print(EventLoop* loop) {
+    cout << "pid: " << getpid() << ", tid: " << ::syscall(SYS_gettid) << ", loop: " << loop << endl;
 }
 
-void quit(EventLoop *loop) {
+void quit(EventLoop* loop) {
     print(loop);
     loop->quit();
 }
 
+void testEventLoopThread1() {
+    EventLoopThread thread1;
+}
+
+void testEventLoopThread2() {
+    EventLoopThread thread2;
+    EventLoop* loop2 = thread2.startLoop();
+    loop2->runInLoop(bind(print, loop2));
+    cout << "loop2 " << loop2 << endl;
+}
+
+void testEventLoopThread3() {
+    EventLoopThread thread3;
+    EventLoop* loop3 = thread3.startLoop();
+    loop3->runInLoop(bind(quit, loop3));
+    cout << "loop3 " << loop3 << endl;
+}
+
 int main() {
-    print();
-    {
-        EventLoopThread th;
-    }
+    EventLoop* mainLoop = new EventLoop();
+    print(mainLoop);
 
-    {
-        EventLoopThread th;
-        EventLoop *loop = th.startLoop();
-        loop->runInLoop(std::bind(print, loop));
-        cout << "loop2 " << reinterpret_cast<size_t>(loop) << endl;
-    }
+    testEventLoopThread1();
+    testEventLoopThread2();
+    testEventLoopThread3();
 
-    {
-        EventLoopThread th;
-        EventLoop *loop = th.startLoop();
-        loop->runInLoop(std::bind(quit, loop));
-        cout << "loop3 " << reinterpret_cast<size_t>(loop) << endl;
-    }
+    return 0;
 }

@@ -23,12 +23,13 @@ public:
 private:
     void connectionCallback(TcpConnectionPtr conn, bool up) {
         LOG(INFO) << "connection is " << (up ? "up" : "down");
-        conn->send("hello");
+        conn->send("hello server!");
+        _loop->runEvery(2, [conn] { conn->send("hello server!"); });
     }
 
     void messageCallback(TcpConnectionPtr conn, Buffer *msg) {
         LOG(INFO) << "receive msg: " << msg->retrieveAllAsString();
-        _loop->quit();
+        _loop->runAfter(10, [this]() { _loop->quit();});
     }
 
     TcpClient client_;
