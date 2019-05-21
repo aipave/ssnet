@@ -6,13 +6,14 @@
 using namespace ssnet;
 using namespace std;
 
-int cnt = 0;
-EventLoop *g_loop;
+EventLoop *g_loop = nullptr;
 
 void print(const char *msg) {
+    static int cnt = 0;
     cout << "msg " << Timestamp::now().toString() << " " << msg << endl;
-    if (++cnt == 10 && g_loop)
+    if (++cnt == 12 && g_loop) {
         g_loop->quit();
+    }
 }
 
 void now() {
@@ -23,14 +24,18 @@ int main() {
     now();
     EventLoop loop;
     g_loop = &loop;
-    loop.runAfter(1, std::bind(print, "once 1.0"));
-    loop.runAfter(2, std::bind(print, "once 2.0"));
-    loop.runAfter(3.5, std::bind(print, "once 3.5"));
-    TimerId id = loop.runEvery(2, std::bind(print, "every 2.0"));
-    loop.runAfter(5, [&id, &loop] {
-        loop.cancel(id);
-        cout << "canceled every 2.0";
-    });
-    loop.runEvery(3, std::bind(print, "every 3.0"));
+
+    // delay task
+    loop.runAfter(1, [](){ print("once 1.0s"); });
+    loop.runAfter(2, [](){ print("once 2.0s"); });
+    loop.runAfter(3.6, [](){ print("once 3.5s"); });
+
+    //
+    loop.runEvery(4, [](){ print("every 4.0s"); });
+
+    //
+    auto id = loop.runEvery(5, [](){ print("every 5.0s"); });
+    loop.runAfter(11, [&id, &loop]() { loop.cancel(id); cout << "canceled every 5.0s" << endl; });
+
     loop.loop();
 }
