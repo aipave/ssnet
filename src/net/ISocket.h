@@ -9,7 +9,7 @@ public:
     static int createTcpSocket(sa_family_t family);
     static struct sockaddr_in6 getLocalAddr(int sockfd);
     static struct sockaddr_in6 getPeerAddr(int sockfd);
-    static void close(int sockfd);
+    static int close(int sockfd);
     static void listen(int sockfd);
     static void bind(int sockfd, const struct sockaddr *addr);
     static int accept(int sockfd, struct sockaddr_in6 *addr);

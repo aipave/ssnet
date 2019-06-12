@@ -1,6 +1,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "Logger.h"
 #include "TcpSocket.h"
@@ -9,7 +10,11 @@
 using namespace ssnet;
 
 TcpSocket::~TcpSocket() {
-    ISocket::close(_fd);
+    if (ISocket::close(_fd) == 0) {
+        if (fcntl(_fd, F_GETFL) == -1) {
+            _fd = -1;
+        }
+    }
 }
 
 void TcpSocket::listen() {

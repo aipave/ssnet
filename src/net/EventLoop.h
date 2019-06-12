@@ -62,6 +62,6 @@ private:
     Channel _wakeupChan;
 
     std::mutex _mtx;
-    std::vector <TaskCallback> _tasks;
+    std::vector <std::shared_ptr<TaskCallback> > _tasks;
 };
 }

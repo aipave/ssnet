@@ -83,7 +83,7 @@ void EventLoop::runInLoop(TaskCallback task) {
 void EventLoop::queueInLoop(TaskCallback task) {
     {
         std::lock_guard <std::mutex> lock(_mtx);
-        _tasks.push_back(std::move(task));
+        _tasks.push_back(std::make_shared<TaskCallback>(std::move(task)));
     }
     if (!isInLoopThread() || _workingFlag) {
         wakeup();
@@ -148,7 +148,7 @@ void EventLoop::doTask() {
     }
 
     for (const auto &task: tasks) {
-        task();
+        (*task)();
     }
 
     _workingFlag = false;

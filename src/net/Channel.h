@@ -62,6 +62,7 @@ public:
     int events() const { return _events; }
 
     int fd() const { return _fd; }
+    void resetFdAfterClose(int resetVal) { _fd = resetVal; }
 
     bool isWriting() const { return _events & kWriteEvent; }
 
@@ -76,7 +77,7 @@ private:
     void update();
 
     EventLoop *_loop;
-    const int _fd;
+    int _fd;
     bool _mgmtResource;
     int _events{0};
     uint32_t r_events{0};

@@ -16,7 +16,7 @@ Acceptor::Acceptor(EventLoop *loop, const EndPoint &endpoint, bool reusePort) :
         _endpoint(endpoint),
         _acceptSocket(ISocket::createTcpSocket(endpoint.family())),
         _acceptChan(loop, _acceptSocket.fd()),
-        _idleFd(::open("/dev/null", O_RDONLY | O_CLOEXEC)) {
+        _freeFdSlot(::open("/dev/null", O_RDONLY | O_CLOEXEC)) {
     _acceptSocket.setReusePort(reusePort);
     _acceptSocket.setReuseAddr(true);
     _acceptSocket.bind(_endpoint);
@@ -24,7 +24,7 @@ Acceptor::Acceptor(EventLoop *loop, const EndPoint &endpoint, bool reusePort) :
 }
 
 Acceptor::~Acceptor() {
-    ::close(_idleFd);
+    ::close(_freeFdSlot);
 }
 
 void Acceptor::listen() {
@@ -39,7 +39,12 @@ void Acceptor::stopListening() {
     _loop->assertInLoopThread();
     _listeningFlag = false;
     _acceptChan.disableReading();
-    ISocket::close(_acceptSocket.fd());
+    if (ISocket::close(_acceptSocket.fd() == 0)) {
+        int flags = fcntl(_acceptSocket.fd(), F_GETFL);
+        if (flags == -1) {
+            _acceptSocket.resetFdAfterClose(-1);
+        }
+    }
 }
 
 void Acceptor::handleRead() {
@@ -47,18 +52,28 @@ void Acceptor::handleRead() {
     EndPoint peer;
     int connfd = _acceptSocket.accept(&peer);
     if (connfd >= 0) {
-        if (_onNewConnCb)
+        if (_onNewConnCb) {
             _onNewConnCb(connfd, peer);
-        else
-            ISocket::close(connfd);
+            return;
+        }
+
+        // if _onNewConnCb is not set, close the connection
+        if (ISocket::close(connfd) != 0) {
+            return;
+        }
+
+        // if close is not fail
+        if (fcntl(_acceptSocket.fd(), F_GETFL) == -1) {
+            _acceptSocket.resetFdAfterClose(-1);
+        }
     } else {
         LOG(ERROR) << "Acceptor::handleRead() errno: " << errno;
         if (errno == EMFILE) {
             // 防止cpu100
-            ::close(_idleFd);
-            _idleFd = ::accept(_acceptSocket.fd(), nullptr, nullptr);
-            ::close(_idleFd);
-            _idleFd = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
+            ::close(_freeFdSlot);
+            _freeFdSlot = ::accept(_acceptSocket.fd(), nullptr, nullptr);
+            ::close(_freeFdSlot);
+            _freeFdSlot = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
         }
     }
 }

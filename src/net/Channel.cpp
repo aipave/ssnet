@@ -1,4 +1,5 @@
 #include <poll.h>
+#include <fcntl.h>
 
 #include "Logger.h"
 #include "Channel.h"
@@ -23,7 +24,12 @@ Channel::~Channel() {
     }
     if (_mgmtResource) {
         _loop->queueInLoop([this]() ->void {
-            ISocket::close(_fd); // close in loop thread
+            // close in loop thread
+            if (ISocket::close(_fd) == 0) {
+                if (fcntl(_fd, F_GETFL) == -1) {
+                    resetFdAfterClose(-1);
+                }
+            }
         });
     }
 }

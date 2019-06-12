@@ -37,6 +37,6 @@ private:
     Channel _acceptChan;
     NewConnectionCallback _onNewConnCb;
 
-    int _idleFd;
+    int _freeFdSlot;
 };
 } // namespace ssnet

@@ -28,6 +28,8 @@ public:
 
     int fd() const { return _fd; }
 
+    void resetFdAfterClose(int resetVal) { _fd = resetVal; }
+
 private:
     int _fd;
 };

@@ -1,3 +1,5 @@
+#include <fcntl.h>
+
 #include "Logger.h"
 #include "ISocket.h"
 #include "EventLoop.h"
@@ -18,7 +20,12 @@ Connector::~Connector() {
     if (_chan) {
         int sockfd = _chan->fd();
         _chan.reset();
-        ISocket::close(sockfd); // Close the socket fd
+        if (0 == ISocket::close(sockfd)) {
+            if (fcntl(_chan->fd(), F_GETFL) == -1) {
+                _chan->resetFdAfterClose(-1);
+            }
+
+        }
     }
 }
 
@@ -30,11 +37,13 @@ void Connector::start() {
 void Connector::startInLoop() {
     LOG(DEBUG) << "Connector::startInLoop()";
     _loop->assertInLoopThread();
-    assert(_status == NetStatus::Disconnected);
-    if (_connFlag)
+    LOG(INFO) << "status is NetStatus::Disconnected? " << (_status == NetStatus::Disconnected ? 1 : 0);
+    //assert(_status == NetStatus::Disconnected);
+    if (_connFlag) {
         connect();
-    else
+    } else {
         LOG(DEBUG) << "do no connect";
+    }
 }
 
 void Connector::connect() {

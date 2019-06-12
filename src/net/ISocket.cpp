@@ -37,9 +37,19 @@ struct sockaddr_in6 ISocket::getPeerAddr(int sockfd) {
     return peerAddr;
 }
 
-void ISocket::close(int sockfd) {
-    if (::close(sockfd) < 0) {
+int ISocket::close(int sockfd) {
+    if (sockfd < 0) {
+        LOG(WARN) << "ISocket::close() sockfd < 0";
+        return -1;
+    }
+
+    if (::close(sockfd) == 0) {
+        // successful close
+        return 0;
+    } else {
+        // fail to close
         LOG(ERROR) << "ISocket::close() errno: " << errno;
+        return -1;
     }
 }
 
